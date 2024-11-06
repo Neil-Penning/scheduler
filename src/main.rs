@@ -11,11 +11,11 @@ peg::parser!{
             = n:$(['0'..='9']*) 
             {? n.parse().or(Err("u32")) }
 
-        rule mm() -> u32
+        pub rule mm() -> u32
             = n:$(['0'..='9']*) 
             {? n.parse().or(Err("u32")) }
 
-        rule dd() -> u32
+        pub rule dd() -> u32
             = n:$(['0'..='9']*) 
             {? n.parse().or(Err("u32")) }
 
@@ -67,43 +67,41 @@ peg::parser!{
     }
 }
 
-    pub fn main() {
-        match calendar::datetime("2024-11-23T0058") {
-            Ok(date) => {
-                println!("Parsed date: {}", date);
-                assert_eq!(date, NaiveDateTime::new(
-                        NaiveDate::from_ymd_opt(2024, 11, 23).unwrap(),
-                        NaiveTime::from_hms_opt(00, 58, 00).unwrap()
-                )
-                );
-            }
-            Err(e) => {
-                eprintln!("Failed to parse date: {}", e);
-            }
-        }
-        match calendar::minutes("180") {
-            Ok(mins) => {
-                println!("Parsed minutes duration: {}", mins);
-                assert_eq!(mins, TimeDelta::minutes(180));
-            }
-            Err(e) => {
-                eprintln!("Failed to parse duration: {}", e);
-            }
-        }
-        match calendar::event("2024-11-23T1800 + 180 Birthday Party") {
-            Ok(mins) => {
-                println!("success");
-            }
-            Err(e) => {
-                eprintln!("Failed: {}", e);
-            }
-        }
-        match calendar::events(
-"2024-11-23T1800 + 180 Birthday Party
-2024-12-31T2359 + 1 NYE Celebration!
-"
-) {
-            Ok(mins) => {
+pub fn main() {
+}
+#[cfg(test)]
+mod tests {
+    use chrono::*;
+    use super::calendar;
+
+    #[test]
+    fn test_year_parsing() {
+        let year = calendar::yyyy("2024").expect("Failed to parse year");
+        assert_eq!(year, 2024);
+    }
+
+    #[test]
+    fn test_month_parsing() {
+        let month = calendar::mm("11").expect("Failed to parse month");
+        assert_eq!(month, 11);
+    }
+
+    #[test]
+    fn test_day_parsing() {
+        let day = calendar::dd("23").expect("Failed to parse day");
+        assert_eq!(day, 23);
+    }
+
+    #[test]
+    fn test_date_parsing() {
+        let date = calendar::date("2024-11-23").expect("Failed to parse date");
+        assert_eq!(date, NaiveDate::from_ymd_opt(2024,11,23).unwrap());
+    }
+
+    #[test]
+    fn test_events_parsing() {
+        match calendar::events("2024-11-23T1800 + 180 Birthday Party\n2024-12-31T2359 + 1 NYE Celebration!") {
+            Ok(..) => {
                 println!("success");
             }
             Err(e) => {
@@ -111,3 +109,4 @@ peg::parser!{
             }
         }
     }
+}
